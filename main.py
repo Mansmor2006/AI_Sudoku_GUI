@@ -18,13 +18,6 @@ pygame.display.set_caption("Sudoku Puzzle")
 # Set up fonts
 font = pygame.font.Font(None, 36)
 
-puzzle = []
-for _ in range(9):
-    row = []
-    for _ in range(9):
-        row.append(0)
-    puzzle.append(row)
-
 # Sudoku puzzle generator function
 def generate_puzzle():
 
