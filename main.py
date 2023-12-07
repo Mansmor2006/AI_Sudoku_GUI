@@ -24,6 +24,9 @@ class Sudoku:
 
     # Sudoku puzzle generator function
     def generate_puzzle(self):
+        """
+        Generates a Sudoku puzzle with a partially filled grid.
+        """
         puzzle = []
         for _ in range(9):
             row = [0] * 9
@@ -38,6 +41,9 @@ class Sudoku:
 
     # Check if placing a number in a certain position is a valid move
     def is_valid(self, board, row, col, num):
+        """
+        Checks if placing a number at a given position in the Sudoku grid is a valid move.
+        """
         return (
             num not in board[row] and
             num not in [board[i][col] for i in range(9)] and
@@ -46,6 +52,9 @@ class Sudoku:
 
     # Draw the Sudoku grid
     def draw_grid(self):
+        """
+        Draws the Sudoku grid on the screen.
+        """
         cell_size = self.width // 9
 
         for i in range(10):
@@ -65,7 +74,10 @@ class Sudoku:
         if self.selected_cell:
             pygame.draw.rect(self.screen, self.RED, (self.selected_cell[1] * cell_size, self.selected_cell[0] * cell_size, cell_size, cell_size), 3) 
 
-    def event_handler(self):   
+    def event_handler(self): 
+            """
+            Handles events and updates the display.
+            """  
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
