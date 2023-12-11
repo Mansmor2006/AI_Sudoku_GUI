@@ -173,9 +173,9 @@ class Sudoku:
                 self.selected_cell[1],
                 int(event.unicode),
             ):
-                self.puzzle[self.selected_cell[0]][self.selected_cell[1]] = int(
-                    event.unicode
-                )
+            # Only allow changing if the cell is not part of the initial puzzle
+                if self.puzzle[self.selected_cell[0]][self.selected_cell[1]] == 0:
+                    self.puzzle[self.selected_cell[0]][self.selected_cell[1]] = int(event.unicode)
 
     def main(self):
         while True:
