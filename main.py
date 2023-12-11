@@ -155,10 +155,15 @@ class Sudoku:
         sys.exit()
 
     def mouse_click_handler(self, event):
-        self.selected_cell = (
-            event.pos[1] // (self.width // 9),
-            event.pos[0] // (self.height // 9),
-        )
+        # Check if the click is within the board
+        if 0 <= event.pos[0] <= self.width and 0 <= event.pos[1] <= self.height - 100:
+            cell_size = self.width // 9
+            self.selected_cell = (event.pos[1] // cell_size, event.pos[0] // cell_size)
+    
+        # Check if the solve button is clicked
+        elif self.solve_button_rect.collidepoint(event.pos):
+            solver = Solver()
+            solver.solve_puzzle(self.puzzle)
 
     def keyboard_handler(self, event):
         if event.unicode.isdigit() and 1 <= int(event.unicode) <= 9:
