@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+from solver import Solver
 
 
 class Sudoku:
@@ -13,7 +14,7 @@ class Sudoku:
         self.RED = (255, 0, 0)
 
         # Set up the display
-        self.width, self.height = 570, 570
+        self.width, self.height = 570, 670
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Sudoku Puzzle")
 
@@ -22,6 +23,11 @@ class Sudoku:
         # Initialize puzzle
         self.puzzle = self.generate_puzzle()
         self.selected_cell = None
+
+        # Add a solve button
+        self.solve_button_rect = pygame.Rect(20, self.height - 70, 100, 40)
+        self.solve_button_color = self.RED
+        self.solve_button_text = self.font.render("Solve", True, self.WHITE)
 
     # Sudoku puzzle generator function
     def generate_puzzle(self):
@@ -84,7 +90,7 @@ class Sudoku:
                     self.screen,
                     self.BLACK,
                     (i * cell_size, 0),
-                    (i * cell_size, self.height),
+                    (i * cell_size, self.height-100),
                     4,
                 )
             else:
@@ -99,9 +105,12 @@ class Sudoku:
                     self.screen,
                     self.BLACK,
                     (i * cell_size, 0),
-                    (i * cell_size, self.height),
+                    (i * cell_size, self.height-100),
                     2,
                 )
+        # Draw the solve button in the expanded area
+        pygame.draw.rect(self.screen, self.solve_button_color, self.solve_button_rect)
+        self.screen.blit(self.solve_button_text, (self.solve_button_rect.x + 10, self.solve_button_rect.y + 10))
 
         for i in range(9):
             for j in range(9):
