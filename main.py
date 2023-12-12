@@ -29,6 +29,10 @@ class Sudoku:
         self.solve_button_color = self.RED
         self.solve_button_text = self.font.render("Solve", True, self.WHITE)
 
+        # Add a Reset button
+        self.reset_button_rect = pygame.Rect(self.width - 130, self.height - 70, 110, 40)
+        self.reset_button_color = self.RED
+        self.reset_button_text = self.font.render("Reset", True, self.WHITE)
     # Sudoku puzzle generator function
     def generate_puzzle(self):
         """
@@ -112,6 +116,10 @@ class Sudoku:
         pygame.draw.rect(self.screen, self.solve_button_color, self.solve_button_rect)
         self.screen.blit(self.solve_button_text, (self.solve_button_rect.x + 10, self.solve_button_rect.y + 10))
 
+        # Draw the solve button in the expanded area
+        pygame.draw.rect(self.screen, self.reset_button_color, self.reset_button_rect)
+        self.screen.blit(self.reset_button_text, (self.reset_button_rect.x + 10, self.reset_button_rect.y + 10))
+
         for i in range(9):
             for j in range(9):
                 if self.puzzle[i][j] != 0:
@@ -163,7 +171,10 @@ class Sudoku:
         # Check if the solve button is clicked
         elif self.solve_button_rect.collidepoint(event.pos):
             solver = Solver()
-            solver.solve_puzzle(self.puzzle)
+            solver.solve_game(self.puzzle)
+        # Check if the reset button is clicked
+        elif self.reset_button_rect.collidepoint(event.pos):
+            self.puzzle = self.generate_puzzle()
 
     def keyboard_handler(self, event):
         if event.unicode.isdigit() and 1 <= int(event.unicode) <= 9:
