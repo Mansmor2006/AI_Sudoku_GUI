@@ -8,10 +8,10 @@ class Solver:
         row, col = empty_cell
 
         for num in range(1, 10):
-            if self.is_valid(board, row, col, num):
+            if self.valid(board, row, col, num):
                 board[row][col] = num
 
-                if self.solve_puzzle(board):
+                if self.solve_game(board):
                     return True  # Recursive call successful
 
                 board[row][col] = 0  # Backtrack if the current path doesn't lead to a solution
@@ -24,7 +24,7 @@ class Solver:
             for j in range(9):
                 if board[i][j] == 0:
                     return(i,j)
-                return None     
+        return None     
 
     def valid(self, board, row, col, num):
     # Check if num is not present in the current row
