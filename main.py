@@ -3,7 +3,6 @@ import sys
 import random
 from solver import Solver
 
-
 class Sudoku:
     def __init__(self):
         pygame.init()
@@ -73,6 +72,7 @@ class Sudoku:
         self.reset_button_color = self.RED
         self.reset_button_text = self.font.render("Reset", True, self.WHITE)
 
+        self.main()  # Start the main game loop
 
     # Sudoku puzzle generator function  
     def generate_puzzle(self):
