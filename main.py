@@ -13,6 +13,45 @@ class Sudoku:
         self.BLACK = (0, 0, 0)
         self.RED = (255, 0, 0)
 
+         # Set up the display for splash screen
+        self.splash_width, self.splash_height = 570, 670
+        self.splash_screen = pygame.display.set_mode((self.splash_width, self.splash_height))
+        pygame.display.set_caption("Sudoku Puzzle")
+
+        # Set up fonts for splash screen
+        self.splash_font = pygame.font.Font(None, 36)
+
+        # Add a start button to the splash screen
+        self.start_button_rect = pygame.Rect(230, 600, 100, 40)
+        self.start_button_color = self.RED
+        self.start_button_text = self.splash_font.render("Start", True, self.WHITE)
+
+        self.show_splash_screen()
+
+    def show_splash_screen(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.start_button_rect.collidepoint(event.pos):
+                        self.setup_game()  # Call a method to set up the game screen
+                        pygame.quit()
+                        return
+                    
+            self.splash_screen.fill(self.WHITE)
+
+            # Draw splash screen content
+            splash_text = self.splash_font.render("Sudoku Puzzle", True, self.BLACK)
+            self.splash_screen.blit(splash_text, (200, 100))
+
+            pygame.draw.rect(self.splash_screen, self.start_button_color, self.start_button_rect)
+            self.splash_screen.blit(self.start_button_text, (self.start_button_rect.x + 10, self.start_button_rect.y + 10))
+
+            pygame.display.flip()
+
+    def setup_game(self):
         # Set up the display
         self.width, self.height = 570, 670
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -33,7 +72,9 @@ class Sudoku:
         self.reset_button_rect = pygame.Rect(self.width - 130, self.height - 70, 110, 40)
         self.reset_button_color = self.RED
         self.reset_button_text = self.font.render("Reset", True, self.WHITE)
-    # Sudoku puzzle generator function
+
+
+    # Sudoku puzzle generator function  
     def generate_puzzle(self):
         """
         Generates a Sudoku puzzle with a partially filled grid.
