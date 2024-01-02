@@ -25,6 +25,15 @@ class Sudoku:
         self.start_button_color = self.RED
         self.start_button_text = self.splash_font.render("Start", True, self.WHITE)
 
+        # Add radio buttons for difficulty levels
+        self.radio_buttons = [
+            {"rect": pygame.Rect(50, 400, 80, 30), "label": "Easy", "value": "easy", "color": self.RED, "selected": False},
+            {"rect": pygame.Rect(230, 400, 110, 30), "label": "Medium", "value": "medium", "color": self.RED, "selected": False},
+            {"rect": pygame.Rect(450, 400, 80, 30), "label": "Hard", "value": "hard", "color": self.RED, "selected": False},   
+        ]
+
+        self.selected_difficulty = None
+
         self.show_splash_screen()
 
     def show_splash_screen(self):
@@ -38,6 +47,9 @@ class Sudoku:
                         self.setup_game()  # Call a method to set up the game screen
                         pygame.quit()
                         return
+                    for button in self.radio_buttons:
+                        if button["rect"].collidepoint(event.pos):
+                            self.handle_radio_button_selection(button)
                     
             self.splash_screen.fill(self.WHITE)
 
@@ -48,7 +60,21 @@ class Sudoku:
             pygame.draw.rect(self.splash_screen, self.start_button_color, self.start_button_rect)
             self.splash_screen.blit(self.start_button_text, (self.start_button_rect.x + 10, self.start_button_rect.y + 10))
 
+            # Draw radio buttons
+            for button in self.radio_buttons:
+                pygame.draw.rect(self.splash_screen, button.get("color", self.RED), button["rect"], 2)
+                button_text = self.splash_font.render(button["label"], True, self.BLACK)
+                self.splash_screen.blit(button_text, (button["rect"].x + 10, button["rect"].y + 5))
+
             pygame.display.flip()
+    def handle_radio_button_selection(self, selected_button):
+        for button in self.radio_buttons:
+            button["selected"] = False  # Deselect all buttons
+            button["color"] = self.RED  # Reset colors
+
+        selected_button["selected"] = True
+        selected_button["color"] = self.GREEN
+        self.selected_difficulty = selected_button["value"]
 
     def setup_game(self):
         # Set up the display
@@ -75,7 +101,7 @@ class Sudoku:
         self.main()  # Start the main game loop
 
     # Sudoku puzzle generator function  
-    def generate_puzzle(self):
+    def generate_puzzle(self, difficulty):
         """
         Generates a Sudoku puzzle with a partially filled grid.
         """
@@ -84,7 +110,15 @@ class Sudoku:
             row = [0] * 9
             puzzle.append(row)
 
-        for _ in range(40):
+        num_of_initial_cells = 0
+        if difficulty == "easy":
+            num_of_initial_cells = 50
+        elif difficulty == "medium":
+            num_of_initial_cells = 30
+        elif difficulty == "hard":
+            num_of_initial_cells = 20
+
+        for _ in range(num_of_initial_cells):
             row, col, num = (
                 random.randint(0, 8),
                 random.randint(0, 8),
@@ -216,6 +250,9 @@ class Sudoku:
         # Check if the reset button is clicked
         elif self.reset_button_rect.collidepoint(event.pos):
             self.puzzle = self.generate_puzzle()
+
+    def reset_game(self):
+        self.puzzle = self.generate_puzzle(self.selected_difficulty)
 
     def keyboard_handler(self, event):
         if event.unicode.isdigit() and 1 <= int(event.unicode) <= 9:
