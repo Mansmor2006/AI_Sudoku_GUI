@@ -11,6 +11,7 @@ class Sudoku:
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         self.RED = (255, 0, 0)
+        self.GREEN = (0, 255, 0)
 
          # Set up the display for splash screen
         self.splash_width, self.splash_height = 570, 670
@@ -51,11 +52,11 @@ class Sudoku:
                         if button["rect"].collidepoint(event.pos):
                             self.handle_radio_button_selection(button)
                     
-            self.splash_screen.fill(self.WHITE)
+            self.splash_screen.fill(self.BLACK)
 
             # Draw splash screen content
-            splash_text = self.splash_font.render("Sudoku Puzzle", True, self.BLACK)
-            self.splash_screen.blit(splash_text, (200, 100))
+            splash_text = self.splash_font.render("welcome to my Sudoku Puzzle", True, self.WHITE)
+            self.splash_screen.blit(splash_text, (100, 100))
 
             pygame.draw.rect(self.splash_screen, self.start_button_color, self.start_button_rect)
             self.splash_screen.blit(self.start_button_text, (self.start_button_rect.x + 10, self.start_button_rect.y + 10))
@@ -63,10 +64,11 @@ class Sudoku:
             # Draw radio buttons
             for button in self.radio_buttons:
                 pygame.draw.rect(self.splash_screen, button.get("color", self.RED), button["rect"], 2)
-                button_text = self.splash_font.render(button["label"], True, self.BLACK)
+                button_text = self.splash_font.render(button["label"], True, self.WHITE)
                 self.splash_screen.blit(button_text, (button["rect"].x + 10, button["rect"].y + 5))
 
             pygame.display.flip()
+
     def handle_radio_button_selection(self, selected_button):
         for button in self.radio_buttons:
             button["selected"] = False  # Deselect all buttons
@@ -85,7 +87,7 @@ class Sudoku:
         # Set up fonts
         self.font = pygame.font.Font(None, 36)
         # Initialize puzzle
-        self.puzzle = self.generate_puzzle()
+        self.puzzle = self.generate_puzzle(self.selected_difficulty)
         self.selected_cell = None
 
         # Add a solve button
@@ -249,7 +251,7 @@ class Sudoku:
             solver.solve_game(self.puzzle)
         # Check if the reset button is clicked
         elif self.reset_button_rect.collidepoint(event.pos):
-            self.puzzle = self.generate_puzzle()
+            self.reset_game()
 
     def reset_game(self):
         self.puzzle = self.generate_puzzle(self.selected_difficulty)
@@ -277,4 +279,4 @@ class Sudoku:
 
 if __name__ == "__main__":
     sudoku_game = Sudoku()
-    sudoku_game.main()
+    pygame.quit()
