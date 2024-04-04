@@ -1,7 +1,10 @@
 import pygame
 import sys
-import random
-from solver import Solver
+import copy
+
+from generate_sudoku import *
+from solver_backtracking import SolverBacktracking
+from solver_forward_checking import SolverForwardChecking
 
 
 class Sudoku:
@@ -13,13 +16,18 @@ class Sudoku:
         self.BLACK = (0, 0, 0)
         self.RED = (255, 0, 0)
         self.GREEN = (0, 255, 0)
+        self.PURPLE = (50, 0, 155)
 
         # Width and height attributes
         self.width, self.height = 570, 670
 
-         # Set up the display for splash screen
-        self.splash_width, self.splash_height = 570, 670
-        self.splash_screen = pygame.display.set_mode((self.splash_width, self.splash_height))
+        self.selected_difficulty = None
+
+        self.show_splash_screen()
+
+    def show_splash_screen(self):
+        # Set up the display for splash screen
+        self.splash_screen = pygame.display.set_mode(( self.width, self.height))
         pygame.display.set_caption("Sudoku Puzzle")
 
         # Set up fonts for splash screen
@@ -31,24 +39,12 @@ class Sudoku:
         self.start_button_hover_color = (255, 50, 50)  # Highlight color when hovering
         self.start_button_text = self.splash_font.render("Start", True, self.WHITE)
 
-         # Message area below the Sudoku board
-        self.message_area_rect = pygame.Rect(150, self.height - 70, self.width - 320, 40)
-        self.message_area_color =  self.WHITE 
-        self.message_font = pygame.font.Font(None, 24)
-        self.solving_message = " "
-
         # Add radio buttons for difficulty levels
         self.radio_buttons = [
             {"rect": pygame.Rect(50, 400, 80, 30), "label": "Easy", "value": "easy", "color": self.RED, "selected": False},
             {"rect": pygame.Rect(230, 400, 110, 30), "label": "Medium", "value": "medium", "color": self.RED, "selected": False},
             {"rect": pygame.Rect(450, 400, 80, 30), "label": "Hard", "value": "hard", "color": self.RED, "selected": False},   
         ]
-
-        self.selected_difficulty = None
-
-        self.show_splash_screen()
-
-    def show_splash_screen(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -85,15 +81,6 @@ class Sudoku:
 
             pygame.display.flip()
 
-    def handle_radio_button_selection(self, selected_button):
-        for button in self.radio_buttons:
-            button["selected"] = False  # Deselect all buttons
-            button["color"] = self.RED  # Reset colors
-
-        selected_button["selected"] = True
-        selected_button["color"] = self.GREEN
-        self.selected_difficulty = selected_button["value"]
-
     def setup_game(self):
         # Set up the display
         self.width, self.height = 570, 670
@@ -102,10 +89,7 @@ class Sudoku:
 
         # Set up fonts
         self.font = pygame.font.Font(None, 36)
-        # Initialize puzzle
-        self.puzzle = self.generate_puzzle(self.selected_difficulty)
-        self.selected_cell = None
-
+        
         # Add a solve button
         self.solve_button_rect = pygame.Rect(20, self.height - 70, 100, 40)
         self.solve_button_color = self.RED
@@ -116,62 +100,27 @@ class Sudoku:
         self.reset_button_color = self.RED
         self.reset_button_text = self.font.render("Reset", True, self.WHITE)
 
-        # Create an instance of the Solver class
-        self.solver = Solver()
-        self.solving_start_time = 0
+        # Add a New Game button
+        self.newgame_button_rect = pygame.Rect(210, self.height - 70, 150, 40)
+        self.newgame_button_color = self.PURPLE
+        self.newgame_button_text = self.font.render("New Game", True, self.WHITE)
+
+        # Message area to display Solved or Unsolved
+        self.message_area_rect = pygame.Rect(250, self.height - 97, self.width - 320, 27)
+        self.message_area_color =  self.WHITE
+        self.message_font = pygame.font.Font(None, 24)
+        self.solving_message = " "
+
+        # Initialize puzzle and solver
+        self.puzzle = generate_puzzle(self.selected_difficulty)
+        self.puzzle_for_reset = copy.deepcopy(self.puzzle)
+        self.selected_cell = None
+        #self.solver = SolverBacktracking()
+        self.solver = SolverForwardChecking()
 
         self.main()  # Start the main game loop
 
-    # Sudoku puzzle generator function  
-    def generate_puzzle(self, difficulty):
-        """
-        Generates a Sudoku puzzle with a partially filled grid.
-        """
-        puzzle = []
-        for _ in range(9):
-            row = [0] * 9
-            puzzle.append(row)
-
-        num_of_initial_cells = 0
-        if difficulty == "easy":
-            num_of_initial_cells = 30
-        elif difficulty == "medium":
-            num_of_initial_cells = 25
-        elif difficulty == "hard":
-            num_of_initial_cells = 20
-
-        for _ in range(num_of_initial_cells):
-            row, col, num = (
-                random.randint(0, 8),
-                random.randint(0, 8),
-                random.randint(1, 9),
-            )
-            while not self.is_valid(puzzle, row, col, num):
-                row, col, num = (
-                    random.randint(0, 8),
-                    random.randint(0, 8),
-                    random.randint(1, 9),
-                )
-            puzzle[row][col] = num
-        return puzzle
-
-    # Check if placing a number in a certain position is a valid move
-    def is_valid(self, board, row, col, num):
-        """
-        Checks if placing a number at a given position in the Sudoku grid is a valid move.
-        """
-        return (
-            num not in board[row]
-            and num not in [board[i][col] for i in range(9)]
-            and num
-            not in [
-                board[i][j]
-                for i in range(row - row % 3, row - row % 3 + 3)
-                for j in range(col - col % 3, col - col % 3 + 3)
-            ]
-        )
-
-    # Draw the Sudoku grid
+    # Draw the Sudoku grid and buttons
     def draw_grid(self):
         """
         Draws the Sudoku grid on the screen.
@@ -209,19 +158,8 @@ class Sudoku:
                     (i * cell_size, self.height-100),
                     2,
                 )
-        # Draw the solve button in the expanded area
-        pygame.draw.rect(self.screen, self.solve_button_color, self.solve_button_rect)
-        self.screen.blit(self.solve_button_text, (self.solve_button_rect.x + 10, self.solve_button_rect.y + 10))
-
-        # Draw the solve button in the expanded area
-        pygame.draw.rect(self.screen, self.reset_button_color, self.reset_button_rect)
-        self.screen.blit(self.reset_button_text, (self.reset_button_rect.x + 10, self.reset_button_rect.y + 10))
-
-        # Draw the message area
-        pygame.draw.rect(self.screen, self.message_area_color, self.message_area_rect)
-        message_text = self.message_font.render(self.solving_message, True, self.BLACK)
-        self.screen.blit(message_text, (self.message_area_rect.x + 10, self.message_area_rect.y + 5))
-
+                
+        
         # Drawing of puzzle numbers
         for i in range(9):
             for j in range(9):
@@ -233,6 +171,7 @@ class Sudoku:
                         number_text, (j * cell_size + 20, i * cell_size + 10)
                     )
 
+        # Draw selected red bordered square to type in
         if self.selected_cell:
             pygame.draw.rect(
                 self.screen,
@@ -246,6 +185,24 @@ class Sudoku:
                 3,
             )
 
+        # Draw the solve button in the expanded area
+        pygame.draw.rect(self.screen, self.solve_button_color, self.solve_button_rect)
+        self.screen.blit(self.solve_button_text, (self.solve_button_rect.x + 10, self.solve_button_rect.y + 10))
+
+        # Draw the reset button in the expanded area
+        pygame.draw.rect(self.screen, self.reset_button_color, self.reset_button_rect)
+        self.screen.blit(self.reset_button_text, (self.reset_button_rect.x + 10, self.reset_button_rect.y + 10))
+
+        # Draw the new game button in the expanded area
+        pygame.draw.rect(self.screen, self.newgame_button_color, self.newgame_button_rect)
+        self.screen.blit(self.newgame_button_text, (self.newgame_button_rect.x + 10, self.newgame_button_rect.y + 10))
+
+        # Draw the message area that shows solved or unsolved after solve button clicked
+        pygame.draw.rect(self.screen, self.message_area_color, self.message_area_rect)
+        message_text = self.message_font.render(self.solving_message, True, self.BLACK)
+        self.screen.blit(message_text, (self.message_area_rect.x + 10, self.message_area_rect.y + 5))
+
+    # All Handlers for mouse and keyboard input
     def event_handler(self):
         """
         Handles events and updates the display.
@@ -272,11 +229,12 @@ class Sudoku:
             self.selected_cell = (event.pos[1] // cell_size, event.pos[0] // cell_size)
         
         # Add an additional condition to check if the click is within the button area
-        elif self.solve_button_rect.collidepoint(event.pos) or self.reset_button_rect.collidepoint(event.pos):
+        elif (self.solve_button_rect.collidepoint(event.pos) or
+            self.reset_button_rect.collidepoint(event.pos) or
+            self.newgame_button_rect.collidepoint(event.pos)):
             # Clicking on buttons, handle button actions
             if self.solve_button_rect.collidepoint(event.pos):
                 self.solving_message = "Solving..."
-                self.solving_start_time = pygame.time.get_ticks()  # Record the start time
                 solving_successful = self.solver.solve_game(self.puzzle)
                 if solving_successful:
                     self.solving_message = "Solved"
@@ -284,21 +242,12 @@ class Sudoku:
                     self.solving_message = "No solution found"
             elif self.reset_button_rect.collidepoint(event.pos):
                 self.reset_game()
-        '''
-        # Check if the solve button is clicked
-        elif self.solve_button_rect.collidepoint(event.pos):
-            solver = Solver()
-            solver.solve_game(self.puzzle)
-        # Check if the reset button is clicked
-        elif self.reset_button_rect.collidepoint(event.pos):
-            self.reset_game()'''
-
-    def reset_game(self):
-        self.puzzle = self.generate_puzzle(self.selected_difficulty)
-
+            elif self.newgame_button_rect.collidepoint(event.pos):
+                self.new_game()
+    
     def keyboard_handler(self, event):
         if event.unicode.isdigit() and 1 <= int(event.unicode) <= 9:
-            if self.is_valid(
+            if SolverBacktracking.is_valid(
                 self.puzzle,
                 self.selected_cell[0],
                 self.selected_cell[1],
@@ -308,6 +257,24 @@ class Sudoku:
                 if self.puzzle[self.selected_cell[0]][self.selected_cell[1]] == 0:
                     self.puzzle[self.selected_cell[0]][self.selected_cell[1]] = int(event.unicode)
 
+    def handle_radio_button_selection(self, selected_button):
+        for button in self.radio_buttons:
+            button["selected"] = False  # Deselect all buttons
+            button["color"] = self.RED  # Reset colors
+
+        selected_button["selected"] = True
+        selected_button["color"] = self.GREEN
+        self.selected_difficulty = selected_button["value"]
+
+    def new_game(self):
+        self.puzzle = generate_puzzle(self.selected_difficulty)
+        self.puzzle_for_reset = copy.deepcopy(self.puzzle)
+        self.solving_message = " "
+
+    def reset_game(self):
+        self.puzzle = copy.deepcopy(self.puzzle_for_reset)
+        self.solving_message = " "
+
     def main(self):
         while True:
             self.event_handler()
@@ -315,9 +282,6 @@ class Sudoku:
             self.screen.fill(self.WHITE)
             self.draw_grid()
 
-            # Update the solving message based on time elapsed
-            if self.solving_message and pygame.time.get_ticks() - self.solving_start_time > 2000:
-                self.solving_message = ""
             pygame.display.flip()
 
 
